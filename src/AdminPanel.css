@@ -521,6 +521,19 @@
   transition: border-color 0.14s;
   background: #fff;
 }
+.approval-form-grid .approval-name {
+  display: flex;
+  align-items: center;
+  min-height: 34px;
+  border: 1px solid #d3dce5;
+  border-radius: 4px;
+  padding: 0 9px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: normal;
+  color: #1a2e45;
+  background: #f8fafc;
+}
 .approval-form-grid input:focus,
 .approval-form-grid select:focus { border-color: #254b77; box-shadow: 0 0 0 2px #254b7718; }
 
@@ -614,7 +627,7 @@
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: visible;
   border: 1px solid #cbd5e1;
 }
 .inventory-modal-card.wide {
@@ -701,10 +714,11 @@
 .slip-sheet {
   background: #ffffff;
   padding: 36px 40px;
-  overflow-y: auto;
+  overflow: visible;
   color: #0f172a;
   font-family: Arial, Helvetica, sans-serif;
   font-size: 11px;
+  min-height: auto;
 }
 
 .slip-header {
@@ -884,12 +898,17 @@
 
 .slip-signatures {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 24px;
   margin-top: 24px;
 }
 .sig-block {
   text-align: center;
+}
+.sig-block.approved-block {
+  grid-column: 1 / -1;
+  justify-self: center;
+  width: min(100%, 340px);
 }
 .sig-role {
   font-size: 8px;
@@ -1011,12 +1030,57 @@
   .slip-signatures { grid-template-columns: repeat(2, 1fr); gap: 20px; }
 }
 @media (max-width: 600px) {
-  .admin-topbar { padding: 0 16px; }
+  .admin-topbar {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 12px 16px;
+    gap: 10px;
+  }
+  .admin-topbar-right {
+    width: 100%;
+    justify-content: space-between;
+    gap: 8px;
+  }
   .admin-main { padding: 20px 14px 40px; }
   .admin-stats { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .admin-toolbar { flex-direction: column; align-items: stretch; }
+  .admin-search-wrap { width: 100%; min-width: 0; }
+  .admin-filter { width: 100%; }
+  .filter-btn {
+    flex: 1 1 calc(50% - 6px);
+    text-align: center;
+  }
+  .toolbar-inv-btn {
+    width: 100%;
+    justify-content: center;
+    margin-left: 0;
+  }
   .req-detail-grid { grid-template-columns: 1fr; }
   .approval-form-grid { grid-template-columns: 1fr; }
-  .req-event-name { max-width: 200px; }
+  .req-card-top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .req-card-left,
+  .req-card-right {
+    width: 100%;
+  }
+  .req-card-right {
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .req-event-name {
+    max-width: 100%;
+    white-space: normal;
+  }
+  .req-meta-line {
+    gap: 4px 10px;
+  }
+  .quick-btn {
+    flex: 1 1 0;
+    justify-content: center;
+  }
   .admin-brand span:not(.admin-brand-mark):not(.admin-portal-tag) { display: none; }
   .slip-signatures { grid-template-columns: 1fr; gap: 16px; }
 }

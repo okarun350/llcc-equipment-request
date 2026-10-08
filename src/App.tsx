@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react'
 import { ArrowRight, CalendarDays, Check, ClipboardList, Clock3, LoaderCircle, MapPin } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import { defaultEquipmentOptions, normalizeRequestedItems, timeRangeOverlaps } from './lib/request-helpers'
@@ -6,7 +6,7 @@ import './App.css'
 
 const STORAGE_KEY = 'llcc-booking-requests'
 
-type BookingStatus = 'approved' | 'pending' | 'rejected'
+type BookingStatus = 'pending' | 'reviewed' | 'recommended' | 'approved' | 'rejected'
 type BookingRecord = {
   id: string
   requester_name: string
@@ -117,6 +117,55 @@ function App() {
       return sampleBookings
     }
   })
+
+  const refreshBookings = useCallback(async () => {
+    if (!supabase) {
+      const saved = localStorage.getItem(STORAGE_KEY)
+      if (!saved) {
+        setBookingLog(sampleBookings)
+        return
+      }
+      try {
+        setBookingLog(JSON.parse(saved) as BookingRecord[])
+      } catch {
+        setBookingLog(sampleBookings)
+      }
+      return
+    }
+
+    const { data, error } = await supabase
+      .from('equipment_booking_requests')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (!error && data) {
+      const mapped = data.map((row) => ({
+        id: row.id,
+        requester_name: row.requester_name,
+        department_college: row.department_college,
+        contact_number: row.contact_number,
+        event_organizer: row.event_organizer,
+        event_name: row.event_name,
+        event_date: row.event_date,
+        start_time: row.start_time,
+        end_time: row.end_time,
+        venue_location: row.venue_location,
+        requested_items: row.requested_items ?? [],
+        status: (row.status ?? 'pending') as BookingStatus,
+        created_at: row.created_at,
+      }))
+      setBookingLog(mapped)
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(mapped))
+    }
+  }, [])
+
+  useEffect(() => {
+    void refreshBookings()
+    const timer = window.setInterval(() => {
+      void refreshBookings()
+    }, 10000)
+    return () => window.clearInterval(timer)
+  }, [refreshBookings])
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(bookingLog))
@@ -304,17 +353,19 @@ function App() {
                 <span>{item}</span>
               </label>)}
             </div>
-            {requestedItems.includes('Other') && (
-              <div className="custom-item-wrap">
-                <label className="custom-item-label">Other equipment item</label>
-                <input
-                  value={customItem}
-                  onChange={(event) => setCustomItem(event.target.value)}
-                  placeholder="Type another equipment request"
-                />
-                <p className="custom-item-note">NOTE: Provide Double AA battery</p>
-              </div>
-            )}
+            <div className="custom-item-wrap">
+              <p className="custom-item-note">NOTE: Provide Double AA battery</p>
+              {requestedItems.includes('Other') && (
+                <>
+                  <label className="custom-item-label">Other equipment item</label>
+                  <input
+                    value={customItem}
+                    onChange={(event) => setCustomItem(event.target.value)}
+                    placeholder="Type another equipment request"
+                  />
+                </>
+              )}
+            </div>
           </section>
 
           <section className="booking-status-panel">
